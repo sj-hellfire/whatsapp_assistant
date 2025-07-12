@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp AI Assistant - Demo</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel - Logs -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <div class="header-left">
+                    <h2>📋 Activity Logs <span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-left: 10px;">DEMO</span></h2>
+                    <div class="timestamp" id="current-time"></div>
+                </div>
+                <div class="status-indicators">
+                    <span id="connection-status" class="status-badge online">Web: Online</span>
+                    <span id="whatsapp-status" class="status-badge online">WhatsApp: Ready</span>
+                    <button id="refresh-status" class="btn" style="margin-left: 10px; font-size: 12px; padding: 6px 12px;">Refresh Status</button>
+                    <span class="btn" style="margin-left: 10px; font-size: 12px; padding: 6px 12px; background: #28a745; color: white;">Demo Mode</span>
+                </div>
+            </div>
+            <div class="logs-container">
+                <div id="logs" class="logs">
+                    <!-- Demo logs will be populated by JavaScript -->
+                </div>
+            </div>
+            <div class="panel-footer">
+                <button id="clear-logs" class="btn">Clear Logs</button>
+                <button id="export-logs" class="btn">Export Logs</button>
+            </div>
+        </div>
+
+        <!-- Right Panel - Chat View -->
+        <div class="right-panel">
+            <div class="panel-header">
+                <h2>💬 Chat History</h2>
+                <div class="chat-info">
+                    <span id="chat-status" class="status-badge online">Ready for Chat</span>
+                    <button id="refresh-chat" class="btn" style="margin-left: 10px; font-size: 12px; padding: 6px 12px;">Refresh Chat</button>
+                </div>
+            </div>
+            <div class="chat-container">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">🤖</div>
+                        <h3>WhatsApp AI Assistant Demo</h3>
+                        <p>This is a static demo showing the interface. All data is simulated.</p>
+                        <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 8px; border: 1px solid #b3d9ff;">
+                            <h4 style="margin-bottom: 10px; color: #0056b3;">Demo Features:</h4>
+                            <ul style="text-align: left; color: #0056b3; line-height: 1.6; margin: 0; padding-left: 20px;">
+                                <li>✅ Real-time logs with timestamps</li>
+                                <li>✅ Live chat history</li>
+                                <li>✅ Status indicators</li>
+                                <li>✅ Interactive buttons</li>
+                                <li>✅ Export functionality</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Static demo mode - no server connection needed
+        const logsContainer = document.getElementById('logs');
+        const connectionStatus = document.getElementById('connection-status');
+        const whatsappStatus = document.getElementById('whatsapp-status');
+        const currentTime = document.getElementById('current-time');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatStatus = document.getElementById('chat-status');
+        const clearLogsBtn = document.getElementById('clear-logs');
+        const exportLogsBtn = document.getElementById('export-logs');
+        const refreshChatBtn = document.getElementById('refresh-chat');
+        const refreshStatusBtn = document.getElementById('refresh-status');
+
+        // Store demo logs and chat messages
+        let allLogs = [];
+        let chatHistory = [];
+        let userMap = new Map();
+
+        // Live timestamp update
+        function updateTimestamp() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString();
+            const dateString = now.toLocaleDateString();
+            currentTime.textContent = `${dateString} ${timeString}`;
+        }
+
+        // Update timestamp every second
+        setInterval(updateTimestamp, 1000);
+        updateTimestamp();
+
+        // UI Functions
+        function addLogEntry(message, type = 'info', timestamp = null, shouldScroll = true) {
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry ${type}`;
+            
+            const time = timestamp || new Date().toLocaleTimeString();
+            const label = getLogLabel(type);
+            
+            logEntry.innerHTML = `
+                <div class="log-label">${label}</div>
+                <div class="log-timestamp">${time}</div>
+                <div class="log-message">${escapeHtml(message)}</div>
+            `;
+            
+            logsContainer.appendChild(logEntry);
+            
+            if (shouldScroll) {
+                scrollToBottom();
+            }
+        }
+
+        function getLogLabel(type) {
+            const labels = {
+                'info': 'INFO',
+                'success': 'SUCCESS',
+                'warning': 'WARNING',
+                'error': 'ERROR',
+                'message': 'MESSAGE',
+                'response': 'RESPONSE',
+                'setup': 'SETUP',
+                'auth': 'AUTH',
+                'unauthorized': 'UNAUTHORIZED',
+                'demo': 'DEMO'
+            };
+            return labels[type] || 'INFO';
+        }
+
+        function scrollToBottom() {
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        // Chat Functions
+        function addChatMessage(sender, message, timestamp, isUser = false, userId = null) {
+            const chatMessage = document.createElement('div');
+            chatMessage.className = `chat-message ${isUser ? 'user' : 'bot'}`;
+            
+            const time = timestamp || new Date().toLocaleTimeString();
+            
+            let userLabel = '';
+            if (isUser && userId) {
+                const userColor = getUserColor(userId);
+                userLabel = `<div class="user-label user-${userColor}">${sender}</div>`;
+            }
+            
+            chatMessage.innerHTML = `
+                <div class="message-bubble ${isUser ? 'user' : 'bot'}">
+                    ${userLabel}
+                    <div class="message-content">${escapeHtml(message)}</div>
+                    <div class="message-timestamp">${time}</div>
+                </div>
+            `;
+            
+            chatMessages.appendChild(chatMessage);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            
+            chatHistory.push({
+                sender,
+                message,
+                timestamp: time,
+                isUser,
+                userId
+            });
+        }
+
+        function getUserColor(userId) {
+            if (!userMap.has(userId)) {
+                const userCount = userMap.size + 1;
+                userMap.set(userId, userCount);
+            }
+            return userMap.get(userId);
+        }
+
+        function clearChat() {
+            chatHistory.innerHTML = `
+                <div class="welcome-message">
+                    <div class="welcome-icon">🤖</div>
+                    <h3>WhatsApp AI Assistant Demo</h3>
+                    <p>This is a static demo showing the interface. All data is simulated.</p>
+                    <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 8px; border: 1px solid #b3d9ff;">
+                        <h4 style="margin-bottom: 10px; color: #0056b3;">Demo Features:</h4>
+                        <ul style="text-align: left; color: #0056b3; line-height: 1.6; margin: 0; padding-left: 20px;">
+                            <li>✅ Real-time logs with timestamps</li>
+                            <li>✅ Live chat history</li>
+                            <li>✅ Status indicators</li>
+                            <li>✅ Interactive buttons</li>
+                            <li>✅ Export functionality</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            // Start demo message animation after clearing
+            setTimeout(() => {
+                startDemoMessages();
+            }, 2000); // 2 second delay before starting messages again
+        }
+
+        // Utility functions
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function exportLogs() {
+            const logText = allLogs.map(log => 
+                `[${log.timestamp}] ${log.message}`
+            ).join('\n');
+            
+            const blob = new Blob([logText], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `whatsapp-ai-demo-logs-${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            addLogEntry('Demo logs exported successfully', 'success');
+        }
+
+        // Button event handlers
+        clearLogsBtn.addEventListener('click', () => {
+            logsContainer.innerHTML = '';
+            allLogs = [];
+            addLogEntry('Demo logs cleared', 'demo');
+        });
+
+        exportLogsBtn.addEventListener('click', () => {
+            exportLogs();
+        });
+
+        refreshChatBtn.addEventListener('click', () => {
+            clearChat();
+            addLogEntry('Demo chat refreshed', 'demo');
+        });
+
+        refreshStatusBtn.addEventListener('click', () => {
+            addLogEntry('Demo status refresh requested', 'demo');
+            addLogEntry('Status: All systems operational (Demo Mode)', 'success');
+        });
+
+        // Auto-scroll to bottom when new logs arrive
+        let autoScroll = true;
+        logsContainer.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = logsContainer;
+            autoScroll = scrollTop + clientHeight >= scrollHeight - 10;
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + L to clear logs
+            if ((e.ctrlKey || e.metaKey) && e.key === 'l') {
+                e.preventDefault();
+                clearLogsBtn.click();
+            }
+            
+            // Ctrl/Cmd + E to export logs
+            if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+                e.preventDefault();
+                exportLogsBtn.click();
+            }
+            
+            // Ctrl/Cmd + End to scroll to bottom
+            if ((e.ctrlKey || e.metaKey) && e.key === 'End') {
+                e.preventDefault();
+                scrollToBottom();
+            }
+        });
+
+        // Initialize demo with realistic data
+        function initializeDemo() {
+            // Add demo log entries
+            addLogEntry('WhatsApp AI Assistant Demo loaded', 'demo');
+            addLogEntry('Static demo mode activated', 'info');
+            addLogEntry('All data is simulated for demonstration', 'info');
+            addLogEntry('Web interface connected', 'success');
+            addLogEntry('WhatsApp client is ready!', 'success');
+            addLogEntry('WhatsApp AI Assistant is now running...', 'success');
+            addLogEntry('Listening for messages from 2 allowed contacts', 'info');
+            
+            // Clear any existing content
+            chatHistory.innerHTML = `
+                <div class="welcome-message">
+                    <div class="welcome-icon">🤖</div>
+                    <h3>WhatsApp AI Assistant Demo</h3>
+                    <p>This is a static demo showing the interface. All data is simulated.</p>
+                    <div style="margin-top: 20px; padding: 15px; background: #e7f3ff; border-radius: 8px; border: 1px solid #b3d9ff;">
+                        <h4 style="margin-bottom: 10px; color: #0056b3;">Demo Features:</h4>
+                        <ul style="text-align: left; color: #0056b3; line-height: 1.6; margin: 0; padding-left: 20px;">
+                            <li>✅ Real-time logs with timestamps</li>
+                            <li>✅ Live chat history</li>
+                            <li>✅ Status indicators</li>
+                            <li>✅ Interactive buttons</li>
+                            <li>✅ Export functionality</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            // Start demo message animation after a short delay
+            setTimeout(() => {
+                startDemoMessages();
+            }, 2000); // 2 second delay before starting messages
+        }
+
+        // Start demo
+        initializeDemo();
+
+        function startDemoMessages() {
+            // Clear the chat first
+            chatHistory.innerHTML = '';
+            
+            const demoMessages = [
+                {
+                    type: 'user',
+                    name: 'John Doe',
+                    message: 'Hello! Can you help me with a question?',
+                    timestamp: new Date(Date.now() - 300000).toLocaleTimeString()
+                },
+                {
+                    type: 'ai',
+                    message: 'Hello! I\'d be happy to help you with your question. What would you like to know?',
+                    timestamp: new Date(Date.now() - 240000).toLocaleTimeString()
+                },
+                {
+                    type: 'user',
+                    name: 'John Doe',
+                    message: 'What\'s the weather like today?',
+                    timestamp: new Date(Date.now() - 180000).toLocaleTimeString()
+                },
+                {
+                    type: 'ai',
+                    message: 'I don\'t have access to real-time weather data, but I can help you find weather information or answer other questions! Would you like me to help you with something else?',
+                    timestamp: new Date(Date.now() - 120000).toLocaleTimeString()
+                },
+                {
+                    type: 'user',
+                    name: 'John Doe',
+                    message: 'Thanks! That\'s helpful.',
+                    timestamp: new Date(Date.now() - 60000).toLocaleTimeString()
+                },
+                {
+                    type: 'ai',
+                    message: 'You\'re welcome! Feel free to ask me anything else. I\'m here to help! 😊',
+                    timestamp: new Date().toLocaleTimeString()
+                }
+            ];
+
+            let currentIndex = 0;
+            
+            function addNextMessage() {
+                if (currentIndex < demoMessages.length) {
+                    const msg = demoMessages[currentIndex];
+                    
+                    if (msg.type === 'user') {
+                        addChatMessage(msg.name, msg.message, msg.timestamp, true, '1234567890@c.us');
+                    } else {
+                        addChatMessage('AI Assistant', msg.message, msg.timestamp, false);
+                    }
+                    
+                    currentIndex++;
+                    
+                    if (currentIndex < demoMessages.length) {
+                        setTimeout(addNextMessage, 1500); // 1.5 second delay between messages
+                    }
+                }
+            }
+
+            // Start the animation immediately
+            addNextMessage();
+        }
+    </script>
+</body>
+</html> 

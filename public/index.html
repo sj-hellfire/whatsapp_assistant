@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp AI Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/chatManager.js"></script>
+    <script src="js/contactManager.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Panel - Logs -->
+        <div class="left-panel">
+            <div class="panel-header">
+                <div class="header-left">
+                    <h2>📋 Activity Logs</h2>
+                    <div class="timestamp" id="current-time"></div>
+                </div>
+                <div class="status-indicators">
+                    <span id="connection-status" class="status-badge offline">Web: Offline</span>
+                    <span id="whatsapp-status" class="status-badge offline">WhatsApp: Offline</span>
+                    <button id="refresh-status" class="btn" style="margin-left: 10px; font-size: 12px; padding: 6px 12px; background: #17a2b8; color: white;">Refresh/Restart WhatsApp</button>
+                    <a href="/logout" class="btn logout-btn" style="margin-left: 10px; font-size: 12px; padding: 6px 12px; text-decoration: none; background: #6c757d; color: white;">Logout Web</a>
+                </div>
+            </div>
+            <div class="logs-container">
+                <div id="logs" class="logs"></div>
+            </div>
+            <div class="panel-footer">
+                <button id="clear-logs" class="btn">Clear Logs</button>
+                <button id="export-logs" class="btn">Export Logs</button>
+                <button id="manage-contacts" class="btn" style="background: #17a2b8; color: white;">Manage Contacts</button>
+            </div>
+        </div>
+
+        <!-- Right Panel - Chat View -->
+        <div class="right-panel">
+            <div class="panel-header">
+                <h2>💬 Chat History</h2>
+                <div class="chat-info">
+                    <span id="chat-status" class="status-badge offline">No Active Chat</span>
+                    <button id="logout-whatsapp" class="btn" style="margin-left: 10px; font-size: 12px; padding: 6px 12px; background: #dc3545; color: white;">Logout WhatsApp</button>
+                </div>
+            </div>
+            <div class="chat-container">
+                <div id="chat-messages" class="chat-messages">
+                    <div class="welcome-message">
+                        <div class="welcome-icon">🤖</div>
+                        <h3>Welcome to WhatsApp AI Assistant</h3>
+                        <p>Start chatting with your allowed contacts to see messages here</p>
+                    </div>
+                </div>
+                <!-- Admin chat input -->
+                <form id="admin-chat-form" class="admin-chat-form" autocomplete="off" style="display: flex; gap: 10px; align-items: center; padding: 16px; border-top: 1px solid #e0e0e0; background: #fafafa;">
+                    <select id="admin-chat-to" style="flex: 0.5; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px;" required>
+                        <option value="">Select recipient...</option>
+                    </select>
+                    <textarea id="admin-chat-message" rows="1" placeholder="Type your message..." style="flex: 1; padding: 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; resize: none;" required></textarea>
+                    <button type="submit" class="btn admin-send-btn" style="width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #25d366; color: white; font-size: 22px; border: none; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+                        <span style="display: inline-block; transform: rotate(-45deg);">&#10148;</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contact Manager Modal -->
+    <div id="contact-modal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 80%; max-width: 600px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                <h2 style="margin: 0; color: #333;">📞 Contact Manager</h2>
+                <span class="close" id="close-contact-modal" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            </div>
+            
+            <!-- Add New Contact Form -->
+            <div class="add-contact-section" style="margin-bottom: 30px; padding: 20px; background: #f8f9fa; border-radius: 6px;">
+                <h3 style="margin-top: 0; color: #495057;">➕ Add New Contact</h3>
+                <form id="add-contact-form" style="display: grid; gap: 15px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div>
+                            <label for="new-contact-phone" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">Phone Number:</label>
+                            <input type="text" id="new-contact-phone" placeholder="e.g., 1234567890" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        </div>
+                        <div>
+                            <label for="new-contact-name" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">Name:</label>
+                            <input type="text" id="new-contact-name" placeholder="Contact name" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn" style="background: #28a745; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Add Contact</button>
+                </form>
+            </div>
+
+            <!-- Contacts List -->
+            <div class="contacts-list-section">
+                <h3 style="margin-top: 0; color: #495057;">📋 Allowed Contacts</h3>
+                <div id="contacts-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
+                    <div style="padding: 20px; text-align: center; color: #666;">Loading contacts...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Contact Modal -->
+    <div id="edit-contact-modal" class="modal" style="display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);">
+        <div class="modal-content" style="background-color: #fefefe; margin: 10% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 400px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #eee;">
+                <h3 style="margin: 0; color: #333;">✏️ Edit Contact</h3>
+                <span class="close" id="close-edit-modal" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+            </div>
+            
+            <form id="edit-contact-form" style="display: grid; gap: 15px;">
+                <input type="hidden" id="edit-contact-id">
+                <div>
+                    <label for="edit-contact-phone" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">Phone Number:</label>
+                    <input type="text" id="edit-contact-phone" readonly style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background: #f8f9fa;">
+                </div>
+                <div>
+                    <label for="edit-contact-name" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">Name:</label>
+                    <input type="text" id="edit-contact-name" required style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" class="btn" style="flex: 1; background: #007bff; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Update</button>
+                    <button type="button" id="delete-contact-btn" class="btn" style="flex: 1; background: #dc3545; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px;">Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html> 
