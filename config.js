@@ -48,9 +48,10 @@ module.exports = {
 
     // WhatsApp Web.js Configuration
     whatsapp: {
-        // Puppeteer options for better compatibility
+        // Puppeteer options for better compatibility with cloud environments
         puppeteer: {
             headless: true,
+            timeout: 60000, // 60 second timeout
             args: [
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
@@ -58,7 +59,34 @@ module.exports = {
                 '--disable-accelerated-2d-canvas',
                 '--no-first-run',
                 '--no-zygote',
-                '--disable-gpu'
+                '--disable-gpu',
+                // Additional flags for cloud environments
+                '--disable-background-timer-throttling',
+                '--disable-backgrounding-occluded-windows',
+                '--disable-renderer-backgrounding',
+                '--disable-features=TranslateUI',
+                '--disable-ipc-flooding-protection',
+                '--disable-default-apps',
+                '--disable-extensions',
+                '--disable-plugins',
+                '--disable-sync',
+                '--disable-translate',
+                '--hide-scrollbars',
+                '--mute-audio',
+                '--no-default-browser-check',
+                '--safebrowsing-disable-auto-update',
+                '--disable-client-side-phishing-detection',
+                '--disable-component-update',
+                '--disable-domain-reliability',
+                '--disable-features=AudioServiceOutOfProcess',
+                '--disable-hang-monitor',
+                '--disable-prompt-on-repost',
+                '--disable-background-networking',
+                '--disable-background-downloads',
+                '--disable-background-upload',
+                '--disable-background-media-suspend',
+                '--memory-pressure-off',
+                '--max_old_space_size=4096'
             ]
         }
     }

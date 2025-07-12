@@ -3,8 +3,12 @@
   "version": "1.0.0",
   "description": "AI Assistant for Whatsapp",
   "main": "server.js",
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "scripts": {
     "start": "node server.js",
+    "build": "echo 'Build completed'",
     "setup": "node setup.js",
     "status": "node check-status.js",
     "test": "echo \"Error: no test specified\" && exit 1"

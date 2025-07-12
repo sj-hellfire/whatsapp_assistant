@@ -34,41 +34,96 @@ class WhatsAppService {
                 this.client = null;
             }
 
+            // Enhanced Puppeteer configuration for cloud environments
+            const puppeteerConfig = {
+                ...config.whatsapp.puppeteer,
+                headless: true,
+                defaultViewport: null,
+                timeout: 60000, // 60 second timeout
+                args: [
+                    ...config.whatsapp.puppeteer.args,
+                    '--window-size=800,600',
+                    '--disable-web-security',
+                    '--disable-features=VizDisplayCompositor',
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                    '--disable-dev-shm-usage',
+                    '--disable-accelerated-2d-canvas',
+                    '--no-first-run',
+                    '--no-zygote',
+                    '--disable-gpu',
+                    // Additional flags for cloud environments
+                    '--disable-background-timer-throttling',
+                    '--disable-backgrounding-occluded-windows',
+                    '--disable-renderer-backgrounding',
+                    '--disable-features=TranslateUI',
+                    '--disable-ipc-flooding-protection',
+                    '--disable-default-apps',
+                    '--disable-extensions',
+                    '--disable-plugins',
+                    '--disable-sync',
+                    '--disable-translate',
+                    '--hide-scrollbars',
+                    '--mute-audio',
+                    '--no-default-browser-check',
+                    '--safebrowsing-disable-auto-update',
+                    '--disable-client-side-phishing-detection',
+                    '--disable-component-update',
+                    '--disable-domain-reliability',
+                    '--disable-features=AudioServiceOutOfProcess',
+                    '--disable-hang-monitor',
+                    '--disable-prompt-on-repost',
+                    '--disable-background-networking',
+                    '--disable-background-downloads',
+                    '--disable-background-upload',
+                    '--disable-background-media-suspend',
+                    '--disable-background-timer-throttling',
+                    '--disable-backgrounding-occluded-windows',
+                    '--disable-renderer-backgrounding',
+                    '--disable-features=TranslateUI',
+                    '--disable-ipc-flooding-protection',
+                    '--disable-default-apps',
+                    '--disable-extensions',
+                    '--disable-plugins',
+                    '--disable-sync',
+                    '--disable-translate',
+                    '--hide-scrollbars',
+                    '--mute-audio',
+                    '--no-default-browser-check',
+                    '--safebrowsing-disable-auto-update',
+                    '--disable-client-side-phishing-detection',
+                    '--disable-component-update',
+                    '--disable-domain-reliability',
+                    '--disable-features=AudioServiceOutOfProcess',
+                    '--disable-hang-monitor',
+                    '--disable-prompt-on-repost',
+                    '--disable-background-networking',
+                    '--disable-background-downloads',
+                    '--disable-background-upload',
+                    '--disable-background-media-suspend',
+                    '--memory-pressure-off',
+                    '--max_old_space_size=4096'
+                ]
+            };
+
             this.client = new Client({
                 authStrategy: new LocalAuth(),
-                puppeteer: {
-                    ...config.whatsapp.puppeteer,
-                    headless: true,
-                    defaultViewport: null,
-                    args: [
-                        ...config.whatsapp.puppeteer.args,
-                        '--window-size=800,600',
-                        '--disable-web-security',
-                        '--disable-features=VizDisplayCompositor',
-                        '--no-sandbox',
-                        '--disable-setuid-sandbox',
-                        '--disable-dev-shm-usage',
-                        '--disable-accelerated-2d-canvas',
-                        '--no-first-run',
-                        '--no-zygote',
-                        '--disable-gpu'
-                    ]
-                }
+                puppeteer: puppeteerConfig
             });
 
             this.setupEventHandlers();
             
-            // Add error handling for initialization
+            // Add error handling for initialization with longer timeout
             this.client.initialize().catch(error => {
                 this.log('Error during client initialization: ' + error.message, 'error');
-                // Retry initialization after delay
+                // Retry initialization after longer delay for cloud environments
                 setTimeout(() => {
                     try {
                         this.initializeClient();
                     } catch (retryError) {
                         this.log('Failed to retry initialization: ' + retryError.message, 'error');
                     }
-                }, 10000);
+                }, 30000); // 30 second delay for cloud environments
             });
         } catch (error) {
             this.log('Error creating WhatsApp client: ' + error.message, 'error');
@@ -79,7 +134,7 @@ class WhatsAppService {
                 } catch (retryError) {
                     this.log('Failed to retry client creation: ' + retryError.message, 'error');
                 }
-            }, 10000);
+            }, 30000); // 30 second delay for cloud environments
         }
     }
 
