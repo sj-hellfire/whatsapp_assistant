@@ -78,8 +78,8 @@ if (!configReport.configuration.valid) {
 
 // Start the server
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    socketService.log(`Server started on http://localhost:${PORT}`, 'setup');
+server.listen(PORT, '0.0.0.0', () => {
+    socketService.log(`Server started on http://0.0.0.0:${PORT}`, 'setup');
     socketService.log('Initializing WhatsApp client...', 'setup');
     socketService.log(`GEMINI_API_KEY: ${process.env.GEMINI_API_KEY ? '✅ Configured' : '❌ Missing'}`, 'info');
     socketService.log(`Allowed contacts: ${config.allowedContacts.length}`, 'info');

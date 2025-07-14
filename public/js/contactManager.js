@@ -203,10 +203,16 @@ class ContactManager {
                         <div style="font-weight: 600; color: #333;">${Utils.escapeHtml(contact.name)}</div>
                         <div style="font-size: 12px; color: #666;">${contact.phone_number}</div>
                     </div>
-                    <button onclick="contactManager.openEditModal('${contact.whatsapp_id}', '${contact.name}', '${contact.phone_number}')" 
-                            class="btn" style="background: #007bff; color: white; padding: 6px 12px; font-size: 12px;">
-                        Edit
-                    </button>
+                    <div style="display: flex; gap: 8px;">
+                        <button onclick="contactManager.openEditModal('${contact.whatsapp_id}', '${contact.name}', '${contact.phone_number}')" 
+                                class="btn" style="background: #007bff; color: white; padding: 6px 12px; font-size: 12px;">
+                            Edit
+                        </button>
+                        <button onclick="contactManager.clearHistory('${contact.whatsapp_id}')"
+                                class="btn" style="background: #dc3545; color: white; padding: 6px 12px; font-size: 12px;">
+                            Clear History
+                        </button>
+                    </div>
                 </div>
             `).join('');
         
@@ -263,6 +269,30 @@ class ContactManager {
                     window.chatManager.refreshContactNamesInChat(contact.whatsapp_id, contact.name);
                 }
             });
+        }
+    }
+
+    // Add clearHistory method
+    async clearHistory(whatsappId) {
+        if (!confirm('Are you sure you want to clear this user\'s chat history?')) {
+            return;
+        }
+        try {
+            const response = await fetch(`/api/contacts/${encodeURIComponent(whatsappId)}/clear-history`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (response.ok) {
+                Utils.showNotification('Chat history cleared successfully', 'success');
+            } else {
+                const errorData = await response.json();
+                Utils.showNotification(errorData.error?.message || 'Failed to clear chat history', 'error');
+            }
+        } catch (error) {
+            console.error('Error clearing chat history:', error);
+            Utils.showNotification('Error clearing chat history', 'error');
         }
     }
 }

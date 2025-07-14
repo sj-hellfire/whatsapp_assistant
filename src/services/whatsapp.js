@@ -88,21 +88,8 @@ class WhatsAppService {
                     '--disable-sync',
                     '--disable-translate',
                     '--hide-scrollbars',
-                    '--mute-audio',
-                    '--no-default-browser-check',
-                    '--safebrowsing-disable-auto-update',
-                    '--disable-client-side-phishing-detection',
-                    '--disable-component-update',
-                    '--disable-domain-reliability',
-                    '--disable-features=AudioServiceOutOfProcess',
-                    '--disable-hang-monitor',
-                    '--disable-prompt-on-repost',
-                    '--disable-background-networking',
-                    '--disable-background-downloads',
-                    '--disable-background-upload',
-                    '--disable-background-media-suspend',
                     '--memory-pressure-off',
-                    '--max_old_space_size=4096'
+                    '--max_old_space_size=2048'
                 ]
             };
 

@@ -131,6 +131,39 @@ const contactOperations = {
             console.error('Error initializing contacts:', error);
             return [];
         }
+    },
+
+    // Get gemini chat history for a contact
+    async getGeminiChatHistory(whatsappId) {
+        try {
+            const { data, error } = await supabase
+                .from('contacts')
+                .select('gemini_chat_history')
+                .eq('whatsapp_id', whatsappId)
+                .single();
+            if (error) throw error;
+            return data ? data.gemini_chat_history : null;
+        } catch (error) {
+            console.error('Error fetching gemini chat history:', error);
+            return null;
+        }
+    },
+
+    // Set gemini chat history for a contact
+    async setGeminiChatHistory(whatsappId, history) {
+        try {
+            const { data, error } = await supabase
+                .from('contacts')
+                .update({ gemini_chat_history: history, updated_at: new Date().toISOString() })
+                .eq('whatsapp_id', whatsappId)
+                .select()
+                .single();
+            if (error) throw error;
+            return data;
+        } catch (error) {
+            console.error('Error setting gemini chat history:', error);
+            return null;
+        }
     }
 };
 

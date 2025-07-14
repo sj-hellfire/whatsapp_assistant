@@ -63,4 +63,17 @@ router.delete('/contacts/:id', asyncHandler(async (req, res) => {
     res.json({ success: true, message: 'Contact deleted successfully' });
 }));
 
+// API endpoint to clear a user's Gemini chat history
+router.post('/contacts/:id/clear-history', asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    if (!id) {
+        throw new ValidationError('Contact ID is required');
+    }
+    const updated = await contactOperations.setGeminiChatHistory(id, null);
+    if (!updated) {
+        return res.status(500).json({ error: { message: 'Failed to clear chat history' } });
+    }
+    res.json({ success: true, message: 'Chat history cleared successfully' });
+}));
+
 module.exports = router; 
