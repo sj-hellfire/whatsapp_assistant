@@ -1,5 +1,6 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const QRCode = require('qrcode');
+const QRCodeTerminal = require('qrcode-terminal');
 const path = require('path');
 const fs = require('fs');
 const config = require('../../config');
@@ -139,6 +140,10 @@ class WhatsAppService {
             try {
                 this.log('QR Code received - scan with WhatsApp mobile app', 'setup');
                 this.updateState({ isInitialized: true, isAuthenticated: false, isReady: false });
+                
+                // Print QR code as ASCII in terminal
+                console.log('Scan this QR code with your WhatsApp mobile app:');
+                QRCodeTerminal.generate(qr, { small: true });
                 
                 const qrDataUrl = await QRCode.toDataURL(qr);
                 this.io.emit('qr', qrDataUrl);

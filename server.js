@@ -50,6 +50,29 @@ const whatsappService = new WhatsAppService(io, contactOperations);
 const aiService = new AIService(io);
 const socketService = new SocketService(io, whatsappService, aiService);
 
+// Terminal-friendly: Log all incoming/outgoing messages and AI responses
+io.on('connection', (socket) => {
+    socket.on('user-message', (data) => {
+        // User message received
+        console.log(`[USER MESSAGE] From: ${data.contactName} (${data.contactId}) at ${data.timestamp}\nMessage: ${data.message}`);
+    });
+    socket.on('ai-response', (data) => {
+        // AI response sent
+        console.log(`[AI RESPONSE] To: ${data.contactName} (${data.contactId}) at ${data.timestamp}\nResponse: ${data.response}`);
+    });
+    socket.on('admin-message', (data) => {
+        // Admin message sent
+        console.log(`[ADMIN MESSAGE] To: ${data.contactName} (${data.contactId}) at ${data.timestamp}\nMessage: ${data.message}`);
+    });
+});
+
+// Also log WhatsApp messages directly from WhatsAppService if possible
+whatsappService.client?.on('message', async (message) => {
+    const contact = await message.getContact();
+    const contactName = contact.pushname || contact.number || 'Unknown';
+    console.log(`[WHATSAPP INCOMING] From: ${contactName} (${message.from})\nMessage: ${message.body}`);
+});
+
 // Graceful shutdown
 process.on('SIGINT', async () => {
     socketService.log('Shutting down WhatsApp AI Assistant...', 'warning');
